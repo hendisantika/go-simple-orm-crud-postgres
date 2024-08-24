@@ -3,8 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
+	"go-simple-orm-crud-postgres/config"
 	"go-simple-orm-crud-postgres/models"
 	"gorm.io/gorm"
+	"log"
 )
 
 func CreatePayment(db *gorm.DB, payment models.Payment) (int64, error) {
@@ -43,18 +45,46 @@ func DeletePayment(db *gorm.DB, id string) (int64, error) {
 }
 
 func main() {
-	//TIP Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined or highlighted text
-	// to see how GoLand suggests fixing it.
-	s := "gopher"
-	fmt.Println("Hello and welcome, %s!", s)
-
-	for i := 1; i <= 5; i++ {
-		//TIP You can try debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-		// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>. To start your debugging session,
-		// right-click your code in the editor and select the <b>Debug</b> option.
-		fmt.Println("i =", 100/i)
+	//connect to postgresql
+	db, err := config.Setup()
+	if err != nil {
+		log.Panic(err)
+		return
 	}
-}
+	fmt.Println("Connected")
+	// migrate models inside project
+	db.AutoMigrate(models.Payment{})
+	fmt.Println("Migrated")
 
-//TIP See GoLand help at <a href="https://www.jetbrains.com/help/go/">jetbrains.com/help/go/</a>.
-// Also, you can try interactive lessons for GoLand by selecting 'Help | Learn IDE Features' from the main menu.
+	// create a payment
+	payment := models.Payment{
+		PaymentCode: "XXX-1",
+		Name:        "Payment for item #1",
+		Status:      "PENDING",
+	}
+
+	result, err := CreatePayment(db, payment)
+	if err != nil {
+		log.Panic(err)
+		return
+	}
+	fmt.Println("Payment created", result)
+
+	// select a payment
+	var id string
+	fmt.Println("Input payment id : ")
+	fmt.Scanln(&id)
+
+	payment, _ = SelectPaymentWIthId(db, id)
+	fmt.Println("Your payment is", payment)
+
+	// update a payment with previous id
+	updatedPayment, _ := UpdatePayment(db, id, models.Payment{
+		Status: "PAID",
+	})
+	fmt.Println("Your payment status now is ", updatedPayment)
+
+	// delete a payment with previous id
+	DeletePayment(db, id)
+	fmt.Println("Your payment now is deleted")
+}
