@@ -1,0 +1,4 @@
+-- CREATE DATABASE payment;
+
+CREATE
+EXTENSION IF NOT EXISTS "uuid-ossp";
