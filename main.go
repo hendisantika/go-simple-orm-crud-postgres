@@ -14,6 +14,15 @@ func CreatePayment(db *gorm.DB, payment models.Payment) (int64, error) {
 	}
 	return result.RowsAffected, nil
 }
+
+func SelectPaymentWIthId(db *gorm.DB, id string) (models.Payment, error) {
+	var payment models.Payment
+	result := db.First(&payment, "id = ?", id)
+	if result.RowsAffected == 0 {
+		return models.Payment{}, errors.New("payment data not found")
+	}
+	return payment, nil
+}
 func main() {
 	//TIP Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined or highlighted text
 	// to see how GoLand suggests fixing it.
